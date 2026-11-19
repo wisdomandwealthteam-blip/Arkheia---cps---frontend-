@@ -3,7 +3,7 @@
 // ARKHEIA-CPS backend (defaults to the Render deployment below).
 
 export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "https://arkheia-cps-10.onrender.com";
+  import.meta.env.VITE_API_BASE_URL || "https://arkheia-cps-13.onrender.com";
 
 class ApiError extends Error {
   constructor(message, status, detail) {
