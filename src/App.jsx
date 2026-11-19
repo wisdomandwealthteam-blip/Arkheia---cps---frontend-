@@ -8,11 +8,13 @@ import HousingRiskPage from "./pages/HousingRiskPage";
 import DashboardPage from "./pages/DashboardPage";
 import DeveloperPage from "./pages/DeveloperPage";
 import BillingPage from "./pages/BillingPage";
+import ClearCheckPage from "./pages/ClearCheckPage";
 
 const TABS = [
   { id: "home", label: "Overview" },
   { id: "auto", label: "Auto" },
   { id: "housing", label: "Housing" },
+  { id: "clearcheck", label: "ClearCheck" },
   { id: "dashboard", label: "Dashboard" },
   { id: "billing", label: "Billing" },
   { id: "developer", label: "Developer" },
@@ -23,29 +25,40 @@ export default function App() {
   const [apiKey, setApiKey] = useState("demo-key-local-dev");
   const [history, setHistory] = useState([]);
   const [checkoutBanner, setCheckoutBanner] = useState(null);
+  const [clearCheckId, setClearCheckId] = useState(null);
 
   const addToHistory = (entry) => setHistory((h) => [...h, entry]);
 
   // Handle redirect-back from Stripe Checkout / Customer Portal. The
   // frontend has no real router (tab state only), so these arrive as
   // query params on the root URL — see stripe_service.py for the
-  // matching redirect URLs.
+  // matching redirect URLs. A `check_id` param means a ClearCheck
+  // unlock flow, otherwise it's a subscription checkout for Billing.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const checkout = params.get("checkout");
     const targetTab = params.get("tab");
+    const checkId = params.get("check_id");
 
-    if (checkout === "success") {
+    if (checkId) {
+      setClearCheckId(checkId);
+      setTab("clearcheck");
+      if (checkout === "success") {
+        setCheckoutBanner({ type: "success", message: "Payment received — your ClearCheck report is unlocked below." });
+      } else if (checkout === "cancelled") {
+        setCheckoutBanner({ type: "cancelled", message: "Checkout cancelled — the report stays locked." });
+      }
+    } else if (checkout === "success") {
       setCheckoutBanner({ type: "success", message: "Subscription updated — welcome aboard." });
       setTab("billing");
     } else if (checkout === "cancelled") {
       setCheckoutBanner({ type: "cancelled", message: "Checkout cancelled — no changes made." });
       setTab("billing");
-    } else if (targetTab === "billing") {
-      setTab("billing");
+    } else if (targetTab === "billing" || targetTab === "clearcheck") {
+      setTab(targetTab);
     }
 
-    if (checkout || targetTab) {
+    if (checkout || targetTab || checkId) {
       // clean the URL so a refresh doesn't re-trigger the banner
       window.history.replaceState({}, "", window.location.pathname);
     }
@@ -113,6 +126,9 @@ export default function App() {
         {tab === "home" && <LandingPage onEnter={setTab} />}
         {tab === "auto" && <AutoRiskPage apiKey={apiKey} onResult={addToHistory} />}
         {tab === "housing" && <HousingRiskPage apiKey={apiKey} onResult={addToHistory} />}
+        {tab === "clearcheck" && (
+          <ClearCheckPage key={clearCheckId ?? "fresh"} apiKey={apiKey} initialCheckId={clearCheckId} />
+        )}
         {tab === "dashboard" && <DashboardPage history={history} />}
         {tab === "billing" && <BillingPage apiKey={apiKey} />}
         {tab === "developer" && <DeveloperPage history={history} />}

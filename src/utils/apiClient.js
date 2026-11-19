@@ -1,9 +1,9 @@
 // src/utils/apiClient.js
-// Centralized API logic. Change API_BASE_URL to point at your deployed
-// backend once it's live on Render (see README).
+// Centralized API logic. Set VITE_API_BASE_URL to override the deployed
+// ARKHEIA-CPS backend (defaults to the Render deployment below).
 
 export const API_BASE_URL =
-  import.meta.env.VITE_CPS_API_BASE_URL || "http://localhost:8000";
+  import.meta.env.VITE_API_BASE_URL || "https://arkheia-cps-13.onrender.com";
 
 class ApiError extends Error {
   constructor(message, status, detail) {
@@ -53,6 +53,18 @@ export const api = {
     request("/risk/housing", { method: "POST", body: contract, apiKey }),
   evaluateAggregate: (payload, apiKey) =>
     request("/risk/aggregate", { method: "POST", body: payload, apiKey }),
+
+  // ClearCheck consumer flow
+  clearCheckPreview: (payload, apiKey) =>
+    request("/api/clearcheck/preview", { method: "POST", body: payload, apiKey }),
+  clearCheckReport: (checkId, apiKey) =>
+    request(`/api/clearcheck/report/${encodeURIComponent(checkId)}`, { apiKey }),
+  clearCheckCheckout: (checkId, customerEmail, apiKey) =>
+    request("/api/clearcheck/checkout", {
+      method: "POST",
+      body: { check_id: checkId, customer_email: customerEmail || null },
+      apiKey,
+    }),
 };
 
 export { ApiError };
