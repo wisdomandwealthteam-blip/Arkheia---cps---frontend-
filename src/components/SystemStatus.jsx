@@ -26,18 +26,23 @@ export default function SystemStatus() {
 
   const dotColor =
     status === "online"
-      ? "bg-risk-low"
+      ? "text-risk-low"
       : status === "offline"
-      ? "bg-risk-high"
-      : "bg-gray-400";
+      ? "text-risk-high"
+      : "text-gray-400";
 
   return (
-    <div className="flex items-center gap-2 font-display text-xs text-ink/60">
-      <span className={`h-2 w-2 rounded-full ${dotColor}`} aria-hidden="true" />
+    <div
+      className="flex items-center gap-1.5 font-display text-xs text-ink/60"
+      title={status === "online" ? `Backend v${info?.version ?? "?"}` : undefined}
+    >
+      <span className={dotColor} aria-hidden="true">
+        ●
+      </span>
       <span>
-        {status === "checking" && "Checking backend..."}
-        {status === "online" && `Backend online — v${info?.version ?? "?"}`}
-        {status === "offline" && "Backend unreachable"}
+        {status === "checking" && "Checking…"}
+        {status === "online" && "Online"}
+        {status === "offline" && "Offline"}
       </span>
     </div>
   );

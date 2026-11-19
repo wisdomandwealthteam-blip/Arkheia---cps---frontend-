@@ -72,7 +72,7 @@ export default function App() {
             onClick={() => setTab("home")}
             className="focus-ring font-display text-sm font-semibold tracking-tight text-ink"
           >
-            ARKHEIA · CPS
+            ARKHEIA DVE™
           </button>
           <nav className="hidden gap-1 sm:flex">
             {TABS.map((t) => (
@@ -123,7 +123,7 @@ export default function App() {
           </div>
         )}
 
-        {tab === "home" && <LandingPage onEnter={setTab} />}
+        {tab === "home" && <LandingPage onEnter={setTab} apiKey={apiKey} />}
         {tab === "auto" && <AutoRiskPage apiKey={apiKey} onResult={addToHistory} />}
         {tab === "housing" && <HousingRiskPage apiKey={apiKey} onResult={addToHistory} />}
         {tab === "clearcheck" && (
@@ -135,7 +135,7 @@ export default function App() {
       </main>
 
       <footer className="border-t border-ink/10 px-6 py-6 text-center text-xs text-ink/35">
-        ARKHEIA-CPS — illustrative deterministic risk model, not licensed actuarial data.
+        ARKHEIA DVE™ — verification reports are informational and do not constitute legal, financial, or credit-repair advice.
       </footer>
     </div>
   );
