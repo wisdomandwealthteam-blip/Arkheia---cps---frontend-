@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ARKHEIA DVE">
+  <rect width="512" height="512" rx="96" fill="#0b0f17"/>
+  <!-- Deterministic "A" mark -->
+  <path d="M256 104 L396 392 H340 L256 212 L172 392 H116 Z" fill="#00d4ff"/>
+  <!-- Verification check -->
+  <path d="M210 330 L242 362 L316 288" fill="none" stroke="#00d4ff" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

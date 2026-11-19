@@ -1,0 +1,25 @@
+{
+  "name": "ARKHEIA DVE™",
+  "short_name": "ARKHEIA DVE",
+  "description": "Deterministic Verification Engine — Same Input. Same Output. Every Time.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0f17",
+  "theme_color": "#00d4ff",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
