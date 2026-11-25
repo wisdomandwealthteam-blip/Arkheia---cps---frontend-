@@ -65,6 +65,12 @@ export const api = {
       body: { check_id: checkId, customer_email: customerEmail || null },
       apiKey,
     }),
+
+  // GovernanceCheck: configured policy gate, then the full audit receipt.
+  governanceCheck: (payload, apiKey) =>
+    request("/api/governance/check", { method: "POST", body: payload, apiKey }),
+  governanceReceipt: (receiptId, apiKey) =>
+    request(`/api/governance/checks/${encodeURIComponent(receiptId)}`, { apiKey }),
 };
 
 export { ApiError };

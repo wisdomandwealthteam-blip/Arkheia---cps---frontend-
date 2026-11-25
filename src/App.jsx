@@ -7,12 +7,15 @@ import DashboardPage from "./pages/DashboardPage";
 import DeveloperPage from "./pages/DeveloperPage";
 import BillingPage from "./pages/BillingPage";
 import ClearCheckPage from "./pages/ClearCheckPage";
+import GovernanceCheckPage from "./pages/GovernanceCheckPage";
+import { captureGovernancePilot, syncTabHistory, tabFromLocation } from "./utils/navigation";
 
 const TABS = [
   { id: "home", label: "Overview" },
   { id: "auto", label: "Auto" },
   { id: "housing", label: "Housing" },
   { id: "clearcheck", label: "ClearCheck" },
+  { id: "governance", label: "GovernanceCheck" },
   { id: "dashboard", label: "Dashboard" },
   { id: "billing", label: "Billing" },
   { id: "developer", label: "Developer" },
@@ -40,7 +43,7 @@ function persistTrial(active, expiresAt, sessionId) {
 }
 
 export default function App() {
-  const [tab, setTab] = useState("home");
+  const [tab, setTab] = useState(() => tabFromLocation(window.location));
   const [apiKey] = useState("demo-key-local-dev");
   const [history, setHistory] = useState([]);
   const [checkoutBanner, setCheckoutBanner] = useState(null);
@@ -101,6 +104,22 @@ export default function App() {
       window.history.replaceState({}, "", `${window.location.pathname}${search ? `?${search}` : ""}${window.location.hash}`);
     }
   }, []);
+
+  // URL/history navigation is separate from payment and access verification.
+  useEffect(() => {
+    syncTabHistory(window, tab, true);
+  }, [tab]);
+
+  useEffect(() => {
+    const onPopState = () => setTab(tabFromLocation(window.location));
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  function navigateTab(nextTab) {
+    syncTabHistory(window, nextTab);
+    setTab(nextTab);
+  }
 
   useEffect(() => {
     if (!trialSessionId) return;
@@ -189,13 +208,13 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <header className="border-b border-ink/10 bg-paper/95 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <button onClick={() => setTab("home")} className="focus-ring font-display text-sm font-semibold tracking-tight text-ink">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-6 py-4">
+          <button onClick={() => navigateTab("home")} className="focus-ring font-display text-sm font-semibold tracking-tight text-ink">
             ARKHEIA DVE™
           </button>
-          <nav className="hidden gap-1 sm:flex">
+          <nav className="hidden flex-wrap gap-1 sm:flex">
             {TABS.map((t) => (
-              <button key={t.id} onClick={() => setTab(t.id)} className={`focus-ring rounded px-3 py-1.5 font-display text-xs font-medium transition ${tab === t.id ? "bg-ink text-paper" : "text-ink/50 hover:bg-ink/5 hover:text-ink"}`}>
+              <button key={t.id} aria-current={tab === t.id ? "page" : undefined} onClick={() => navigateTab(t.id)} className={`focus-ring rounded px-3 py-1.5 font-display text-xs font-medium transition ${tab === t.id ? "bg-ink text-paper" : "text-ink/50 hover:bg-ink/5 hover:text-ink"}`}>
                 {t.label}
               </button>
             ))}
@@ -206,7 +225,7 @@ export default function App() {
         </div>
         <nav className="flex gap-1 overflow-x-auto border-t border-ink/5 px-6 py-2 sm:hidden">
           {TABS.map((t) => (
-            <button key={t.id} onClick={() => setTab(t.id)} className={`focus-ring shrink-0 rounded px-3 py-1 font-display text-xs font-medium ${tab === t.id ? "bg-ink text-paper" : "text-ink/50"}`}>
+            <button key={t.id} aria-current={tab === t.id ? "page" : undefined} onClick={() => navigateTab(t.id)} className={`focus-ring shrink-0 rounded px-3 py-1 font-display text-xs font-medium ${tab === t.id ? "bg-ink text-paper" : "text-ink/50"}`}>
               {t.label}
             </button>
           ))}
@@ -238,10 +257,15 @@ export default function App() {
           </div>
         )}
 
-        {tab === "home" && <LandingPage onEnter={setTab} apiKey={apiKey} trialSessionId={trialActive ? trialSessionId : null} />}
+        {tab === "home" && (
+          <div onClickCapture={(event) => captureGovernancePilot(event, navigateTab)}>
+            <LandingPage onEnter={navigateTab} apiKey={apiKey} trialSessionId={trialActive ? trialSessionId : null} />
+          </div>
+        )}
         {tab === "auto" && <AutoRiskPage apiKey={apiKey} onResult={addToHistory} />}
         {tab === "housing" && <HousingRiskPage apiKey={apiKey} onResult={addToHistory} />}
         {tab === "clearcheck" && <ClearCheckPage key={clearCheckId ?? "fresh"} apiKey={apiKey} initialCheckId={clearCheckId} inputContext={<InstitutionalGateSelector />} trialSessionId={trialActive ? trialSessionId : null} />}
+        {tab === "governance" && <GovernanceCheckPage apiKey={apiKey} />}
         {tab === "dashboard" && <DashboardPage history={history} />}
         {tab === "billing" && <BillingPage apiKey={apiKey} />}
         {tab === "developer" && <DeveloperPage history={history} />}
