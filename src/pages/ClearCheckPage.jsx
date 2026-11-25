@@ -50,7 +50,7 @@ const initialForm = () => ({
   report_date: new Date().toISOString().slice(0, 10),
 });
 
-export default function ClearCheckPage({ apiKey, initialCheckId }) {
+export default function ClearCheckPage({ apiKey, initialCheckId, inputContext, trialSessionId }) {
   const [step, setStep] = useState(initialCheckId ? 3 : 1);
   const [form, setForm] = useState(initialForm);
   const [accounts, setAccounts] = useState([emptyAccount()]);
@@ -83,7 +83,21 @@ export default function ClearCheckPage({ apiKey, initialCheckId }) {
       setReportError(null);
       setLocked(null);
       try {
-        const res = await api.clearCheckReport(id, apiKey);
+        let res;
+        if (trialSessionId) {
+          const response = await fetch(
+            `https://arkheia-cps-10.onrender.com/api/clearcheck/report/${encodeURIComponent(id)}?session_id=${encodeURIComponent(trialSessionId)}`,
+            { headers: { "X-API-Key": apiKey }, cache: "no-store" }
+          );
+          res = await response.json();
+          if (!response.ok) {
+            const error = new Error(typeof res.detail === "string" ? res.detail : "Unable to retrieve the report.");
+            error.status = response.status;
+            throw error;
+          }
+        } else {
+          res = await api.clearCheckReport(id, apiKey);
+        }
         setReport(res);
       } catch (err) {
         if (err.status === 402 || err.status === 403) {
@@ -95,7 +109,7 @@ export default function ClearCheckPage({ apiKey, initialCheckId }) {
         setReportLoading(false);
       }
     },
-    [apiKey]
+    [apiKey, trialSessionId]
   );
 
   // Arriving back from Stripe (?check_id=...) jumps straight to step 3.
@@ -168,6 +182,8 @@ export default function ClearCheckPage({ apiKey, initialCheckId }) {
     <div className="space-y-8">
       <Stepper current={step} onNavigate={(n) => n < step && setStep(n)} />
 
+      {step === 1 && inputContext}
+
       {step === 1 && (
         <StepInput
           form={form}
@@ -195,6 +211,7 @@ export default function ClearCheckPage({ apiKey, initialCheckId }) {
 
       {step === 3 && (
         <StepReport
+          apiKey={apiKey}
           checkId={checkId}
           report={report}
           locked={locked}
@@ -650,6 +667,7 @@ function StepPreview({ preview, form, onBack, onViewReport }) {
 /* ---------- step 3: locked / unlocked report ---------- */
 
 function StepReport({
+  apiKey,
   checkId,
   report,
   locked,
@@ -662,8 +680,27 @@ function StepReport({
   hasPreview,
   onBackToPreview,
 }) {
+  const findingsCount = report && (
+    Array.isArray(report.findings) ? report.findings.length : report.findings_count
+  );
+
   return (
     <div className="space-y-6">
+      {report && !loading && !locked && Number.isInteger(findingsCount) && findingsCount >= 0 && (
+        <div role="status" className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-risk-low/30 bg-risk-low/10 px-3 py-1 font-display text-xs font-medium text-risk-low">
+            ● UNLOCKED
+          </span>
+          <span className={`rounded-full border px-3 py-1 font-display text-xs font-medium ${
+            findingsCount > 0
+              ? "border-risk-high/30 bg-risk-high/5 text-risk-high"
+              : "border-risk-low/30 bg-risk-low/10 text-risk-low"
+          }`}>
+            {findingsCount > 0 ? "● GATE: HOLD — DISCREPANCY FLAGGED" : "● GATE: PASS — CLEAN FILE"}
+          </span>
+        </div>
+      )}
+
       {locked && !loading ? (
         <div className="rounded border border-risk-moderate/30 bg-risk-moderate/5 p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -710,6 +747,8 @@ function StepReport({
         />
       )}
 
+      <ContinuousVerificationAccess apiKey={apiKey} />
+
       <div className="flex flex-wrap gap-3">
         {hasPreview && (
           <button
@@ -727,5 +766,64 @@ function StepReport({
         </button>
       </div>
     </div>
+  );
+}
+
+function ContinuousVerificationAccess({ apiKey }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function activateTrial() {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("https://arkheia-cps-10.onrender.com/api/clearcheck/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
+        body: JSON.stringify({ plan: "trial_7d" }),
+      });
+      const session = await response.json();
+      if (!response.ok) {
+        throw new Error(typeof session.detail === "string" ? session.detail : "Trial checkout is temporarily unavailable. Please try again.");
+      }
+      const checkoutUrl = session.url || session.checkout_url;
+      if (!checkoutUrl || new URL(checkoutUrl).origin !== "https://checkout.stripe.com") {
+        throw new Error("A valid Stripe checkout link was not returned. Please try again.");
+      }
+      window.location.assign(checkoutUrl);
+    } catch (err) {
+      setError(err.message || "Unable to start trial checkout. Please try again.");
+      setLoading(false);
+    }
+  }
+
+  return (
+    <section aria-labelledby="continuous-verification-heading" className="space-y-4 rounded-lg border border-signal/30 bg-white p-6">
+      <p className="font-display text-xs uppercase tracking-wide text-signal">
+        CONTINUOUS VERIFICATION ACCESS · GUARDRAIL-PROTECTED
+      </p>
+      <h3 id="continuous-verification-heading" className="font-display text-xl font-semibold text-ink">
+        Unlock 7-Day Full ClearCheck™ Gate & Monitoring Access for $1
+      </h3>
+      <p className="text-sm leading-relaxed text-ink/65">
+        Turn this single check into continuous pre-submission gating, multi-record verification, and exportable SHA-256 audit receipts.
+      </p>
+      <div className="rounded border border-ink/10 bg-ink/[0.02] p-4">
+        <h4 className="font-display text-sm font-semibold text-ink">Data Protection & Guardrails</h4>
+        <ol className="mt-3 list-decimal space-y-3 pl-5 text-xs leading-relaxed text-ink/65">
+          <li><strong className="text-ink">Client-Side Redaction First:</strong> Sensitive identifiers are masked in your browser prior to verification.</li>
+          <li><strong className="text-ink">Deterministic Execution Only:</strong> Records are evaluated strictly against codified statutory rules—never fed into probabilistic LLMs or used to train AI models.</li>
+          <li><strong className="text-ink">Zero Resale or Third-Party Sharing:</strong> Your data is never sold, rented, or brokered.</li>
+          <li><strong className="text-ink">Cryptographic Receipt Isolation:</strong> Only your SHA-256 verification digest (<code>chk_...</code>) and compliance finding summary are persisted for your audit trail.</li>
+        </ol>
+      </div>
+      {error && <p role="alert" className="text-sm text-risk-high">{error}</p>}
+      <button type="button" onClick={activateTrial} disabled={loading} className="focus-ring w-full rounded bg-signal px-5 py-3 font-display text-sm font-medium text-white transition hover:bg-signal/90 disabled:opacity-50 sm:w-auto">
+        {loading ? "Redirecting to checkout..." : "Activate 7-Day Access — $1 →"}
+      </button>
+      <p className="text-xs leading-relaxed text-ink/50">
+        $1.00 due today for 7-day full access. Cancel anytime in one click from Billing before your trial ends.
+      </p>
+    </section>
   );
 }

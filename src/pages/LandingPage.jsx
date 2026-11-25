@@ -31,11 +31,29 @@ const BADGE_STYLES = {
   "PILOT READY": "border-risk-moderate/30 bg-risk-moderate/10 text-risk-moderate",
 };
 
-export default function LandingPage({ onEnter, apiKey }) {
+const GATE_MODES = [
+  {
+    label: "1. Pre-Funding API Gate",
+    context: "Lenders & Fintechs: Run inline via POST /api/clearcheck before funds release. Returns a deterministic PASS / HOLD SHA-256 receipt (chk_...) to block statutory or accounting mismatches automatically.",
+    output: "Expected Gate Output: Automated PASS / HOLD Underwriting Receipt",
+  },
+  {
+    label: "2. Clean-File Certificate (Auto & Housing)",
+    context: "Auto Dealers, Mortgage Brokers & Leasing Offices: Certify borrower packets prior to lender submission to prove zero mathematical or statutory defects and eliminate underwriting kickbacks.",
+    output: "Expected Gate Output: Attachable Clean-File Verification Certificate",
+  },
+  {
+    label: "3. DVE™ Pipeline Stage 1",
+    context: "Enterprise Platforms: Sanitize PII in-browser and enforce statutory rules at intake before chaining verified payloads into GovernanceCheck™ and SettlementCheck™.",
+    output: "Expected Gate Output: Canonical Stage 1 Digest for Downstream DVE™ Engines",
+  },
+];
+
+export default function LandingPage({ onEnter, apiKey, trialSessionId }) {
   const products = [
     {
       name: "ClearCheck™",
-      useCase: "Pre-submission PII redaction and audit-ready compliance verification for regulated files.",
+      useCase: "Pre-Submission Record & Underwriting Gate — Certify borrower packets, block defective payloads before funding, and sanitize Stage 1 pipeline inputs.",
       badge: "LIVE",
       body: "Report & intake consistency verification. Enter your records, preview a redacted consistency check, then unlock the full evidence report — identifiers are masked locally before anything leaves your device.",
       action: { label: "Run ClearCheck →", onClick: scrollToClearCheck },
@@ -159,12 +177,15 @@ export default function LandingPage({ onEnter, apiKey }) {
         aria-labelledby="clearcheck-heading"
         className="scroll-mt-24 border-t border-ink/10 pt-10"
       >
+        <p className="mb-3 font-display text-xs uppercase tracking-[0.2em] text-signal">
+          CLEARCHECK™ · DETERMINISTIC INTAKE & UNDERWRITING GATE
+        </p>
         <div className="mb-6 flex flex-wrap items-center gap-3">
           <h2
             id="clearcheck-heading"
             className="font-display text-xl font-semibold text-ink"
           >
-            ClearCheck™ — live verification
+            Stop defective records before capital moves or audits fail.
           </h2>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-risk-low/30 bg-risk-low/10 px-3 py-1 font-display text-xs font-medium uppercase tracking-wide text-risk-low">
             <span className="h-1.5 w-1.5 rounded-full bg-current" />
@@ -176,8 +197,41 @@ export default function LandingPage({ onEnter, apiKey }) {
           the full report. Account numbers are masked in your browser before
           submission — raw identifiers never leave this device.
         </p>
-        <ClearCheckPage apiKey={apiKey} />
+        <ClearCheckPage
+          apiKey={apiKey}
+          trialSessionId={trialSessionId}
+          inputContext={<InstitutionalGateSelector />}
+        />
       </section>
+    </div>
+  );
+}
+
+export function InstitutionalGateSelector() {
+  const [activeMode, setActiveMode] = useState(0);
+
+  return (
+    <div className="space-y-3">
+      <div role="group" aria-label="Institutional gate mode" className="flex flex-wrap gap-2 rounded border border-ink/10 bg-white p-2">
+        {GATE_MODES.map((mode, index) => (
+          <button
+            key={mode.label}
+            type="button"
+            aria-pressed={activeMode === index}
+            aria-controls="gate-mode-context"
+            onClick={() => setActiveMode(index)}
+            className={`focus-ring flex-1 rounded px-3 py-2 text-left font-display text-xs font-medium transition ${
+              activeMode === index ? "bg-ink text-paper" : "text-ink/60 hover:bg-ink/5 hover:text-ink"
+            }`}
+          >
+            {mode.label}
+          </button>
+        ))}
+      </div>
+      <div id="gate-mode-context" role="status" aria-live="polite" className="rounded border border-signal/25 bg-signal/5 p-4">
+        <p className="text-sm leading-relaxed text-ink/75">{GATE_MODES[activeMode].context}</p>
+        <p className="mt-3 font-display text-xs font-semibold text-signal">{GATE_MODES[activeMode].output}</p>
+      </div>
     </div>
   );
 }
