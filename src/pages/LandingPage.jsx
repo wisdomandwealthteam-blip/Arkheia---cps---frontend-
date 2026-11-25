@@ -98,35 +98,62 @@ export default function LandingPage({ onEnter, apiKey, trialSessionId }) {
   return (
     <div className="space-y-16">
       {/* Hero card */}
-      <section className="mx-auto max-w-2xl rounded-lg border border-ink/10 bg-white p-6 text-center shadow-sm sm:p-10 md:max-w-none md:text-left">
-        <p className="font-display text-xs uppercase tracking-[0.2em] text-signal">
-          ARKHEIA DVE™ · DETERMINISTIC VERIFICATION ENGINE
-        </p>
-        <h1 className="mt-3 font-display text-4xl font-semibold leading-tight text-ink sm:text-5xl">
-          Verify records.
-          <br />
-          Verify transactions.
-          <br />
-          Verify AI outputs.
-        </h1>
-        <p className="mt-5 max-w-xl text-ink/60 md:mx-0">
-          Before costly decisions are made. Most systems generate opinions. ARKHEIA produces SHA-256 signed, reproducible audit outcomes—same input, same output, every time.
-        </p>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center md:justify-start">
-          <button
-            onClick={scrollToClearCheck}
-            className="focus-ring rounded bg-ink px-6 py-3 font-display text-sm font-medium text-paper transition hover:bg-ink/85"
-          >
-            Run ClearCheck
-          </button>
-          <a
-            href={PILOT_MAILTO}
-            className="focus-ring rounded border border-ink/20 px-6 py-3 text-center font-display text-sm font-medium text-ink transition hover:bg-ink/5"
-          >
-            Request Pilot
-          </a>
-        </div>
-      </section>
+      <div className="space-y-4">
+        <section className="mx-auto max-w-2xl rounded-lg border border-ink/10 bg-white p-6 text-center shadow-sm sm:p-10 md:max-w-none md:text-left">
+          <p className="font-display text-xs uppercase tracking-[0.2em] text-signal">
+            ARKHEIA DVE™ · DETERMINISTIC VERIFICATION ENGINE
+          </p>
+          <h1 className="mt-3 font-display text-4xl font-semibold leading-tight text-ink sm:text-5xl">
+            Verify records.
+            <br />
+            Verify transactions.
+            <br />
+            Verify AI outputs.
+          </h1>
+          <p className="mt-4 font-display text-lg font-semibold leading-snug text-signal sm:text-xl">
+            Verification Infrastructure for High-Trust Systems
+          </p>
+          <p className="mt-5 max-w-xl text-base leading-relaxed text-ink/70 md:mx-0">
+            Stop defective underwriting files, un-auditable AI outputs, and settlement discrepancies before money moves or compliance audits fail.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center md:justify-start">
+            <button
+              onClick={scrollToClearCheck}
+              className="focus-ring rounded bg-ink px-6 py-3 font-display text-sm font-medium text-paper transition hover:bg-ink/85"
+            >
+              Run ClearCheck
+            </button>
+            <a
+              href={PILOT_MAILTO}
+              className="focus-ring rounded border border-ink/20 px-6 py-3 text-center font-display text-sm font-medium text-ink transition hover:bg-ink/5"
+            >
+              Request Pilot
+            </a>
+          </div>
+        </section>
+
+        {/* Verifiable engineering evidence — not customer claims */}
+        <section aria-label="Verifiable system proof" className="rounded-lg border border-ink/10 bg-white">
+          <dl className="grid grid-cols-1 gap-px overflow-hidden rounded-lg bg-ink/10 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="flex flex-col bg-white p-5">
+              <dt className="order-2 mt-2 text-xs leading-relaxed text-ink/65">Automated deterministic &amp; billing test assertions passing</dt>
+              <dd className="order-1 font-display text-2xl font-semibold text-ink">272 / 272</dd>
+            </div>
+            <div className="flex flex-col bg-white p-5">
+              <dt className="order-2 mt-2 text-xs leading-relaxed text-ink/65">Reproducible output parity (same input, same output, every run)</dt>
+              <dd className="order-1 font-display text-2xl font-semibold text-ink">100%</dd>
+            </div>
+            <div className="flex flex-col bg-white p-5">
+              <dt className="order-2 mt-2 text-xs leading-relaxed text-ink/65">Raw PII persisted or used for AI model training</dt>
+              <dd className="order-1 font-display text-2xl font-semibold text-ink">Zero</dd>
+            </div>
+            <div className="flex flex-col bg-white p-5">
+              <dt className="order-2 mt-2 text-xs leading-relaxed text-ink/65">Cryptographically signed audit receipt (<code>chk_...</code>) on every check</dt>
+              <dd className="order-1 font-display text-2xl font-semibold text-ink">SHA-256</dd>
+            </div>
+          </dl>
+        </section>
+      </div>
 
       {/* Core verification contract strip */}
       <section aria-label="Core verification contract" className="border-t border-ink/10 pt-10">
@@ -158,6 +185,23 @@ export default function LandingPage({ onEnter, apiKey, trialSessionId }) {
 
       {/* One Engine. Six Solutions. — mobile accordion */}
       <section aria-labelledby="solutions-heading" className="border-t border-ink/10 pt-10">
+        <div aria-label="Built for high-trust teams" className="mb-8 flex flex-wrap items-center gap-3">
+          <p className="font-display text-xs font-semibold uppercase tracking-[0.15em] text-ink/60">
+            BUILT FOR HIGH-TRUST TEAMS:
+          </p>
+          <ul className="flex flex-wrap gap-2">
+            {[
+              "Fintech & Lending Underwriters",
+              "Auto & Mortgage Brokerages",
+              "Enterprise AI Governance Leads",
+              "Payment & Treasury Operations",
+            ].map((team) => (
+              <li key={team} className="rounded-full border border-ink/15 bg-white px-3 py-1.5 font-display text-xs font-medium text-ink/75">
+                {team}
+              </li>
+            ))}
+          </ul>
+        </div>
         <h2
           id="solutions-heading"
           className="font-display text-xl font-semibold text-ink"
@@ -169,6 +213,22 @@ export default function LandingPage({ onEnter, apiKey, trialSessionId }) {
           Engine — one fixed contract, six domains of proof.
         </p>
         <ProductAccordion products={products} />
+      </section>
+
+      {/* Concrete catch before the live pre-funding gate */}
+      <section aria-labelledby="verification-scenario-heading" className="rounded-lg border border-signal/25 bg-white p-6 shadow-sm sm:p-8">
+        <p className="font-display text-xs uppercase tracking-[0.15em] text-signal">
+          REAL VERIFICATION SCENARIO · PRE-FUNDING GATE
+        </p>
+        <h2 id="verification-scenario-heading" className="mt-3 font-display text-xl font-semibold leading-snug text-ink">
+          How ARKHEIA Catches a Costly Defect Before Funding
+        </h2>
+        <p className="mt-4 text-sm leading-relaxed text-ink/70">
+          An incoming underwriting payload reports a past-due amount exceeding the total account balance—a statutory accuracy conflict under 15 U.S.C. § 1681 that triggers lender kickbacks and compliance exposure.
+        </p>
+        <p className="mt-5 rounded border border-signal/20 bg-signal/5 p-4 text-sm leading-relaxed text-ink/80">
+          ClearCheck™ redacts PII in-browser, flags <code className="break-all font-semibold text-signal">PAST_DUE_EXCEEDS_BALANCE</code> in milliseconds, and issues a signed <strong className="font-display text-ink">GATE: HOLD</strong> receipt (<code className="break-all">chk_0cfa2d...</code>) before capital moves.
+        </p>
       </section>
 
       {/* Live ClearCheck™ module */}

@@ -1,6 +1,5 @@
 // src/App.jsx
 import { useEffect, useState } from "react";
-import SystemStatus from "./components/SystemStatus";
 import LandingPage, { InstitutionalGateSelector } from "./pages/LandingPage";
 import AutoRiskPage from "./pages/AutoRiskPage";
 import HousingRiskPage from "./pages/HousingRiskPage";
@@ -202,7 +201,6 @@ export default function App() {
             ))}
           </nav>
           <div className="flex items-center gap-4">
-            <SystemStatus />
             <span className="whitespace-nowrap font-display text-xs text-risk-low">● Verification Engine Online</span>
           </div>
         </div>
