@@ -1,7 +1,6 @@
 // src/App.jsx
 import { useEffect, useState } from "react";
 import SystemStatus from "./components/SystemStatus";
-import ApiKeyInput from "./components/ApiKeyInput";
 import LandingPage from "./pages/LandingPage";
 import AutoRiskPage from "./pages/AutoRiskPage";
 import HousingRiskPage from "./pages/HousingRiskPage";
@@ -22,7 +21,7 @@ const TABS = [
 
 export default function App() {
   const [tab, setTab] = useState("home");
-  const [apiKey, setApiKey] = useState("demo-key-local-dev");
+  const [apiKey] = useState("demo-key-local-dev");
   const [history, setHistory] = useState([]);
   const [checkoutBanner, setCheckoutBanner] = useState(null);
   const [clearCheckId, setClearCheckId] = useState(null);
@@ -91,7 +90,9 @@ export default function App() {
           </nav>
           <div className="flex items-center gap-4">
             <SystemStatus />
-            <ApiKeyInput value={apiKey} onChange={setApiKey} />
+            <span className="whitespace-nowrap font-display text-xs text-risk-low">
+              ● Verification Engine Online
+            </span>
           </div>
         </div>
         {/* mobile nav */}

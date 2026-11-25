@@ -35,36 +35,42 @@ export default function LandingPage({ onEnter, apiKey }) {
   const products = [
     {
       name: "ClearCheck™",
+      useCase: "Pre-submission PII redaction and audit-ready compliance verification for regulated files.",
       badge: "LIVE",
       body: "Report & intake consistency verification. Enter your records, preview a redacted consistency check, then unlock the full evidence report — identifiers are masked locally before anything leaves your device.",
       action: { label: "Run ClearCheck →", onClick: scrollToClearCheck },
     },
     {
       name: "RiskCheck™",
+      useCase: "Pre-execution exposure scoring and automated policy gating before capital or contracts move.",
       badge: "ACTIVE API",
       body: "Deterministic Auto & Housing risk verification over the /risk/auto and /risk/housing APIs. Every score is decomposed into the factors that produced it — the same contract always returns the same number.",
       action: { label: "Open RiskCheck evaluator →", onClick: () => onEnter("auto") },
     },
     {
       name: "SettlementCheck™",
+      useCase: "Deterministic ledger and payment reconciliation with SHA-256 settlement receipts.",
       badge: "PILOT READY",
       body: "Royalty, revenue-share & treasury allocation verification. Confirm every distribution matches the agreement it came from before funds move.",
       action: { label: "Request Pilot →", href: pilotMailto("SettlementCheck") },
     },
     {
       name: "ProvenanceCheck™",
+      useCase: "Cryptographic origin, licensing, and royalty chain verification for digital and media assets.",
       badge: "PILOT READY",
       body: "Dependency, software & document lineage verification. Prove where artifacts came from, who touched them, and that nothing changed along the way.",
       action: { label: "Request Pilot →", href: pilotMailto("ProvenanceCheck") },
     },
     {
       name: "GovernanceCheck™",
+      useCase: "Policy enforcement and deterministic guardrails for enterprise AI model outputs.",
       badge: "PILOT READY",
       body: "Multi-signature & custody authorization verification. Confirm that every action was signed by the right parties under the right policy before it executes.",
       action: { label: "Request Pilot →", href: pilotMailto("GovernanceCheck") },
     },
     {
       name: "EdgeVerify™",
+      useCase: "Offline-capable, zero-dependency verification receipts for local nodes and field hardware.",
       badge: "PILOT READY",
       body: "Hardware state, sensor & controlled execution verification. Verify device readings and execution conditions at the edge before decisions depend on them.",
       action: { label: "Request Pilot →", href: pilotMailto("EdgeVerify") },
@@ -76,13 +82,17 @@ export default function LandingPage({ onEnter, apiKey }) {
       {/* Hero card */}
       <section className="mx-auto max-w-2xl rounded-lg border border-ink/10 bg-white p-6 text-center shadow-sm sm:p-10 md:max-w-none md:text-left">
         <p className="font-display text-xs uppercase tracking-[0.2em] text-signal">
-          Same Input. Same Output. Every Time.
+          ARKHEIA DVE™ · DETERMINISTIC VERIFICATION ENGINE
         </p>
         <h1 className="mt-3 font-display text-4xl font-semibold leading-tight text-ink sm:text-5xl">
-          Deterministic Verification
+          Verify records.
+          <br />
+          Verify transactions.
+          <br />
+          Verify AI outputs.
         </h1>
         <p className="mt-5 max-w-xl text-ink/60 md:mx-0">
-          Most systems generate opinions. ARKHEIA generates verifiable outcomes.
+          Before costly decisions are made. Most systems generate opinions. ARKHEIA produces SHA-256 signed, reproducible audit outcomes—same input, same output, every time.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center md:justify-start">
           <button
@@ -210,6 +220,7 @@ function ProductAccordion({ products }) {
                 </span>
               </button>
             </h3>
+            <p className="px-4 pb-4 text-sm text-ink/55 sm:px-5">{p.useCase}</p>
             <div
               id={panelId}
               role="region"
