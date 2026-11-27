@@ -369,6 +369,39 @@ test("provenance: overview drawer precedes the progress steps, toggles accessibl
   }
 });
 
+test("provenance: NotebookLM walkthrough link is prominent and secure beside the video and after failure", () => {
+  const harness = componentHarness(components.ProvenanceCheckPage);
+  const label = "Open 1:20 Narrated Walkthrough in NotebookLM ↗";
+  try {
+    harness.render();
+    assert.equal(walk(expand(harness.tree), (node) => node.type === "a" && text(node) === label), null);
+    walk(expand(harness.tree), (node) => node.type === "button" && text(node).startsWith("Watch MusicGuard Overview (60s)")).props.onClick();
+    harness.render();
+    for (const failed of [false, true]) {
+      const layout = expand(harness.tree);
+      const drawer = walk(layout, (node) => node.props.id === "musicguard-walkthrough");
+      const link = walk(drawer, (node) => node.type === "a" && text(node) === label);
+      assert.ok(link);
+      assert.equal(link.props.href, "https://notebooklm.link.google/PYLJI66rOOxj");
+      assert.equal(link.props.target, "_blank");
+      assert.equal(link.props.rel, "noopener noreferrer");
+      assert.match(link.props.className, /bg-signal/);
+      assert.match(link.props.className, /text-white/);
+      const video = walk(drawer, (node) => node.type === "video");
+      if (!failed) {
+        assert.ok(video);
+        video.props.onError();
+        harness.render();
+      } else {
+        assert.equal(video, null);
+        assert.ok(text(drawer).includes("Drop musicguard-overview.mp4 into public/videos/ to enable the narrated executive walkthrough."));
+      }
+    }
+  } finally {
+    harness.unmount();
+  }
+});
+
 test("provenance: split sliders conserve only exact totals, sync both ways, and pad both presets", () => {
   const harness = componentHarness(components.ProvenanceCheckPage);
   const roles = ["artist", "producer", "songwriter", "distributor"];

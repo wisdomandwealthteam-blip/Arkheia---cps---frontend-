@@ -292,6 +292,10 @@ function WalkthroughDrawer({ open, error, onToggle, onError }) {
             <video controls preload="metadata" src="/videos/musicguard-overview.mp4" onError={onError}
               className="w-full rounded bg-ink" aria-label="MusicGuard narrated executive walkthrough" />
           )}
+          <a href="https://notebooklm.link.google/PYLJI66rOOxj" target="_blank" rel="noopener noreferrer"
+            className={`${PRIMARY_BUTTON} inline-flex items-center justify-center text-center`}>
+            Open 1:20 Narrated Walkthrough in NotebookLM ↗
+          </a>
         </div>
       )}
     </section>
