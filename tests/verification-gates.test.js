@@ -968,3 +968,130 @@ test("provenance: stale hash failures and invalid digest buffers cannot overwrit
     globalThis.fetch = originalFetch;
   }
 });
+
+for (const decision of ["PASS", "HOLD"]) {
+  test(`provenance: prominent ${decision} outcome leads preview and full receipt with mapped reasons`, async () => {
+    const originalFetch = globalThis.fetch;
+    const expected = fixture("provenance", decision);
+    let calls = 0;
+    globalThis.fetch = async () => {
+      calls++;
+      return { ok: true, headers: { get: () => "application/json" }, json: async () => expected };
+    };
+    const harness = componentHarness(components.ProvenanceCheckPage);
+    const outcome = (layout) => walk(layout, (node) => node.props["data-testid"] === "verification-outcome");
+    try {
+      harness.render();
+      assert.equal(outcome(expand(harness.tree)), null);
+      button(harness.tree, `Load ${decision === "PASS" ? "Compliant" : "Defective"} Music Provenance (Triggers ${decision})`).props.onClick();
+      harness.render();
+      assert.equal(outcome(expand(harness.tree)), null);
+      await submit(harness);
+      harness.render();
+      const expectedReasons = decision === "PASS" ? [
+        "Reason: All provenance, rights-chain, and 10,000 bps split invariants satisfied",
+      ] : [
+        "Reason: Fingerprint Not Declared", "Reason: Recording ISRC Not Declared",
+        "Reason: Missing Rights Chain", "Reason: Royalty Allocation Incomplete",
+      ];
+      for (const full of [false, true]) {
+        const layout = expand(harness.tree);
+        const card = outcome(layout);
+        assert.ok(card);
+        assert.equal(card.type, "section");
+        assert.equal(card.props.role, "status");
+        assert.equal(card.props["aria-live"], "polite");
+        assert.match(card.props.className, /bg-ink/);
+        assert.match(card.props.className, /text-white/);
+        assert.match(card.props.className, decision === "HOLD" ? /border-amber-400/ : /border-emerald-400/);
+        assert.equal(text(walk(card, (node) => node.type === "h2")), "VERIFICATION OUTCOME");
+        const status = walk(card, (node) => node.type === "p" && text(node) === `Status: ${decision}`);
+        assert.ok(status);
+        assert.match(status.props.className, /text-3xl/);
+        assert.match(status.props.className, /font-bold/);
+        assert.match(status.props.className, decision === "HOLD" ? /bg-amber-400 text-amber-950/ : /bg-emerald-400 text-emerald-950/);
+        const reasons = walk(card, (node) => node.type === "ul").props.children;
+        assert.deepEqual(reasons.map(text), expectedReasons);
+        assert.ok(text(card).includes("Receipt: Available"));
+        assert.equal(text(card).includes(expected.receipt_id), full);
+        const container = walk(layout, (node) => node.type === "div" && Array.isArray(node.props.children) && node.props.children[0] === card);
+        assert.ok(container, "Outcome must be the first card in the current result step");
+        assert.equal(calls, 1);
+        if (!full) {
+          button(harness.tree, "View full receipt →").props.onClick();
+          harness.render();
+        }
+      }
+      button(harness.tree, "← Back to preview").props.onClick();
+      harness.render();
+      assert.ok(outcome(expand(harness.tree)));
+      button(harness.tree, "← Edit inputs").props.onClick();
+      harness.render();
+      assert.equal(outcome(expand(harness.tree)), null);
+    } finally {
+      harness.unmount();
+      globalThis.fetch = originalFetch;
+    }
+  });
+}
+
+test("provenance: outcome reasons follow only returned violations and identify the actually missing provenance field", async () => {
+  const originalFetch = globalThis.fetch;
+  try {
+    for (const [code, changes, expectedReasons] of [
+      ["MISSING_PROVENANCE_HASH", { audio_fingerprint_sha256: "" }, ["Reason: Fingerprint Not Declared"]],
+      ["MISSING_PROVENANCE_HASH", { isrc: "" }, ["Reason: Recording ISRC Not Declared"]],
+      ["MISSING_PROVENANCE_HASH", {}, [`Reason: ${GATE_FINDING_REASONS.MISSING_PROVENANCE_HASH}`]],
+      ["UNVERIFIED_RIGHTS_CHAIN", {}, ["Reason: Missing Rights Chain"]],
+      ["SPLIT_CONSERVATION_VIOLATION", {}, ["Reason: Royalty Allocation Incomplete"]],
+    ]) {
+      globalThis.fetch = async () => ({ ok: true, headers: { get: () => "application/json" }, json: async () => ({
+        ...fixture("provenance", "HOLD"), findings: [{ code, reason: GATE_FINDING_REASONS[code] }],
+      }) });
+      const harness = componentHarness(components.ProvenanceCheckPage);
+      try {
+        harness.render();
+        button(harness.tree, "Load Compliant Music Provenance (Triggers PASS)").props.onClick();
+        harness.render();
+        for (const [field, value] of Object.entries(changes)) {
+          walk(expand(harness.tree), (node) => node.props.id === `provenance-${field}`).props.onChange({ target: { value } });
+          harness.render();
+        }
+        await submit(harness);
+        harness.render();
+        const card = walk(expand(harness.tree), (node) => node.props["data-testid"] === "verification-outcome");
+        assert.ok(text(card).includes("Status: HOLD"));
+        assert.deepEqual(walk(card, (node) => node.type === "ul").props.children.map(text), expectedReasons);
+      } finally {
+        harness.unmount();
+      }
+    }
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("provenance: failed or noncanonical responses never display a verification outcome or available receipt", async () => {
+  const originalFetch = globalThis.fetch;
+  const harness = componentHarness(components.ProvenanceCheckPage);
+  try {
+    harness.render();
+    button(harness.tree, "Load Compliant Music Provenance (Triggers PASS)").props.onClick();
+    harness.render();
+    for (const responder of [
+      async () => { throw new Error("Offline"); },
+      async () => ({ ok: true, headers: { get: () => "application/json" }, json: async () => ({ ...fixture("provenance"), receipt_id: "invalid" }) }),
+    ]) {
+      globalThis.fetch = responder;
+      await submit(harness);
+      harness.render();
+      const layout = expand(harness.tree);
+      assert.equal(walk(layout, (node) => node.props["data-testid"] === "verification-outcome"), null);
+      assert.equal(text(layout).includes("Receipt: Available"), false);
+      assert.equal(text(layout).includes("Status: PASS"), false);
+    }
+  } finally {
+    harness.unmount();
+    globalThis.fetch = originalFetch;
+  }
+});

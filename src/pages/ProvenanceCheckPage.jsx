@@ -247,6 +247,7 @@ export default function ProvenanceCheckPage({ apiKey }) {
 
       {step === 2 && preview && (
         <div className="space-y-6">
+          <VerificationOutcome receipt={preview} input={submitted} />
           <section className="space-y-5 rounded border border-ink/10 bg-white p-6">
             <div><h2 className="font-display text-lg font-semibold text-ink">Redacted preview</h2><p className="mt-1 break-all font-mono text-[11px] text-ink/45">{preview.receipt_id}</p></div>
             <GateFindings receipt={preview} />
@@ -261,6 +262,7 @@ export default function ProvenanceCheckPage({ apiKey }) {
 
       {step === 3 && receipt && (
         <div className="space-y-6">
+          <VerificationOutcome receipt={receipt} input={submitted} full />
           <section className="space-y-5 rounded border border-ink/10 bg-white p-6">
             <h2 className="font-display text-lg font-semibold text-ink">Full audit receipt</h2>
             <GateFindings receipt={receipt} />
@@ -274,6 +276,41 @@ export default function ProvenanceCheckPage({ apiKey }) {
         </div>
       )}
     </div>
+  );
+}
+
+function VerificationOutcome({ receipt, input, full = false }) {
+  const hold = receipt.gate === "HOLD";
+  const reasons = hold ? receipt.findings.flatMap((finding) => {
+    if (finding.code === "MISSING_PROVENANCE_HASH") {
+      // The canonical violation covers either identifier. Name missing fields
+      // only from the masked payload associated with this verified receipt.
+      const missing = [];
+      if (!input?.audio_fingerprint_sha256) missing.push("Fingerprint Not Declared");
+      if (!input?.isrc) missing.push("Recording ISRC Not Declared");
+      return missing.length ? missing : [finding.reason];
+    }
+    const labels = {
+      UNVERIFIED_RIGHTS_CHAIN: "Missing Rights Chain",
+      SPLIT_CONSERVATION_VIOLATION: "Royalty Allocation Incomplete",
+    };
+    return [labels[finding.code] || finding.reason];
+  }) : ["All provenance, rights-chain, and 10,000 bps split invariants satisfied"];
+
+  return (
+    <section data-testid="verification-outcome" role="status" aria-live="polite"
+      aria-labelledby="provenance-outcome-heading"
+      className={`space-y-5 rounded-lg border-2 bg-ink p-6 text-white shadow-lg ${hold ? "border-amber-400" : "border-emerald-400"}`}>
+      <h2 id="provenance-outcome-heading" className="font-display text-sm font-bold uppercase tracking-[0.2em]">VERIFICATION OUTCOME</h2>
+      <p className={`inline-flex rounded-lg px-4 py-3 font-display text-3xl font-bold sm:text-4xl ${hold ? "bg-amber-400 text-amber-950" : "bg-emerald-400 text-emerald-950"}`}>Status: {receipt.gate}</p>
+      <ul className="space-y-3 text-base font-medium leading-relaxed">
+        {reasons.map((reason, index) => <li key={`${index}-${reason}`}>Reason: {reason}</li>)}
+      </ul>
+      <div className="space-y-2 border-t border-white/25 pt-4">
+        <p className="font-display text-lg font-semibold">Receipt: Available</p>
+        {full && <p aria-label="Outcome receipt ID" className="break-all font-mono text-sm leading-relaxed">{receipt.receipt_id}</p>}
+      </div>
+    </section>
   );
 }
 
