@@ -1,5 +1,16 @@
 // src/utils/navigation.js
 const TAB_IDS = ["home", "auto", "housing", "clearcheck", "governance", "dashboard", "billing", "developer"];
+const GATE_PATHS = {
+  settlement: "/settlement", provenance: "/provenance", custody: "/custody", edge: "/edge",
+};
+const GATE_ALIASES = { musicguard: "provenance", custos: "custody" };
+TAB_IDS.push(...Object.keys(GATE_PATHS));
+
+function gateTab(pathname) {
+  const route = pathname.replace(/^\//, "").replace(/\/$/, "");
+  return Object.hasOwn(GATE_PATHS, route) ? route
+    : Object.hasOwn(GATE_ALIASES, route) ? GATE_ALIASES[route] : undefined;
+}
 
 export function tabFromLocation(location) {
   const params = new URLSearchParams(location.search);
@@ -9,11 +20,21 @@ export function tabFromLocation(location) {
   if (["success", "cancelled"].includes(params.get("checkout"))) return "billing";
   const queryTab = params.get("tab");
   if (TAB_IDS.includes(queryTab)) return queryTab;
+  const gate = gateTab(location.pathname);
+  if (gate) return gate;
   return /^\/governance\/?$/.test(location.pathname) ? "governance" : "home";
 }
 
 export function tabUrl(location, tab) {
   if (!TAB_IDS.includes(tab)) throw new Error("Unknown application tab.");
+  if (Object.hasOwn(GATE_PATHS, tab) || gateTab(location.pathname)) {
+    const params = new URLSearchParams(location.search);
+    params.delete("tab");
+    if (!Object.hasOwn(GATE_PATHS, tab) && tab !== "home" && tab !== "governance") params.set("tab", tab);
+    const path = GATE_PATHS[tab] || (tab === "governance" ? "/governance" : "/");
+    const search = params.toString();
+    return `${path}${search ? `?${search}` : ""}${location.hash || ""}`;
+  }
   const params = new URLSearchParams(location.search);
   params.delete("tab");
   if (tab !== "home" && tab !== "governance") params.set("tab", tab);

@@ -71,6 +71,16 @@ export const api = {
     request("/api/governance/check", { method: "POST", body: payload, apiKey }),
   governanceReceipt: (receiptId, apiKey) =>
     request(`/api/governance/checks/${encodeURIComponent(receiptId)}`, { apiKey }),
+
+  // Remaining DVE gates are verification-only POST receipt endpoints.
+  settlementCheck: (payload, apiKey) =>
+    request("/api/settlement/check", { method: "POST", body: payload, apiKey }),
+  provenanceCheck: (payload, apiKey) =>
+    request("/api/provenance/check", { method: "POST", body: payload, apiKey }),
+  custodyCheck: (payload, apiKey) =>
+    request("/api/custody/check", { method: "POST", body: payload, apiKey }),
+  edgeCheck: (payload, apiKey) =>
+    request("/api/edge/check", { method: "POST", body: payload, apiKey }),
 };
 
 export { ApiError };

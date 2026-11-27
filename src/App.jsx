@@ -8,6 +8,10 @@ import DeveloperPage from "./pages/DeveloperPage";
 import BillingPage from "./pages/BillingPage";
 import ClearCheckPage from "./pages/ClearCheckPage";
 import GovernanceCheckPage from "./pages/GovernanceCheckPage";
+import SettlementCheckPage from "./pages/SettlementCheckPage";
+import ProvenanceCheckPage from "./pages/ProvenanceCheckPage";
+import CustodyCheckPage from "./pages/CustodyCheckPage";
+import EdgeVerifyPage from "./pages/EdgeVerifyPage";
 import { captureGovernancePilot, syncTabHistory, tabFromLocation } from "./utils/navigation";
 
 const TABS = [
@@ -16,6 +20,10 @@ const TABS = [
   { id: "housing", label: "Housing" },
   { id: "clearcheck", label: "ClearCheck" },
   { id: "governance", label: "GovernanceCheck" },
+  { id: "settlement", label: "SettlementCheck" },
+  { id: "provenance", label: "ProvenanceCheck" },
+  { id: "custody", label: "CustodyCheck" },
+  { id: "edge", label: "EdgeVerify" },
   { id: "dashboard", label: "Dashboard" },
   { id: "billing", label: "Billing" },
   { id: "developer", label: "Developer" },
@@ -266,6 +274,10 @@ export default function App() {
         {tab === "housing" && <HousingRiskPage apiKey={apiKey} onResult={addToHistory} />}
         {tab === "clearcheck" && <ClearCheckPage key={clearCheckId ?? "fresh"} apiKey={apiKey} initialCheckId={clearCheckId} inputContext={<InstitutionalGateSelector />} trialSessionId={trialActive ? trialSessionId : null} />}
         {tab === "governance" && <GovernanceCheckPage apiKey={apiKey} />}
+        {tab === "settlement" && <SettlementCheckPage apiKey={apiKey} />}
+        {tab === "provenance" && <ProvenanceCheckPage apiKey={apiKey} />}
+        {tab === "custody" && <CustodyCheckPage apiKey={apiKey} />}
+        {tab === "edge" && <EdgeVerifyPage apiKey={apiKey} />}
         {tab === "dashboard" && <DashboardPage history={history} />}
         {tab === "billing" && <BillingPage apiKey={apiKey} />}
         {tab === "developer" && <DeveloperPage history={history} />}
